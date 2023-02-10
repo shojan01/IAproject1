@@ -1,0 +1,10 @@
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\bin\Debug\appIATablero.exe.config
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\bin\Debug\appIATablero.exe
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\bin\Debug\appIATablero.pdb
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.csproj.AssemblyReference.cache
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.Form1.resources
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.Properties.Resources.resources
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.csproj.GenerateResource.cache
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.csproj.CoreCompileInputs.cache
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.exe
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.pdb
