@@ -59,6 +59,7 @@ namespace appIATablero
 
 		private void generaObstaculos(PaintEventArgs e)
 		{
+
 			Random random = new Random();
 			int des;
 			SolidBrush paso = new SolidBrush(Color.FromArgb(50, 0, 0, 0));
@@ -105,6 +106,7 @@ namespace appIATablero
 
 		private void button1_Click(object sender, EventArgs e)
 		{
+			coordenadas.Clear();
 			this.Refresh();  
 		}
 
