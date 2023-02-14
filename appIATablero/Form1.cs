@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,6 +18,13 @@ namespace appIATablero
 		List<RectangleF> coordenadas = new List<RectangleF>(); //GUARDARA INFORMACION DE LAS POSICIONES 
 															   //DE CUBOS GENERADOS
 
+		List<RectangleF> pasosAbiertos = new List<RectangleF>();
+
+		private const int dimensionX = 545;
+		private const int dimensionY = 350;
+		private const int Cuadricula = 10;
+
+
 		public Form1()
 		{
 			InitializeComponent();
@@ -30,14 +38,14 @@ namespace appIATablero
 			PointF[] tablero =
 			{
 			new PointF(10.0F, 10.0F),
-			new PointF (350.0F, 10.0F),
-			new PointF (350.0F, 350.0F),
-			new PointF (10.0F, 350.0F),
+			new PointF (dimensionX, 10.0F),
+			new PointF (dimensionX, dimensionY),
+			new PointF (10.0F, dimensionY),
 			new PointF(10.0F, 10.0F)
 			};
 
 			// TABLERO DIMESIONES A GENERAR OBSTACULOS
-			// x10, y10					x350, y10
+			// x10, y10					x545, y10
 			//    ----------------------------
 			//	  .							 .
 			//	  .							 .
@@ -45,13 +53,14 @@ namespace appIATablero
 			//	  .							 .
 			//	  .							 .
 			//    ----------------------------
-			// x10, y350				x350, y350
+			// x10, y350				x545, y350
 
-			// GENERA CUADRICULA DE 8 x 8 
+			// GENERA CUADRICULA DE 10 x 10
 
-			float espaciado = (350 - 10) / 8; //PIXELES ENTRE DIVISION DE AREAS 350px
-											  //-10 por el espacio que comienza a generar linea en el panel
-			generaCuadricula(10, 350, espaciado);
+			float espaciadoX = (dimensionX - 10) / 10.0f;
+			float espaciadoY = (dimensionY - 10) / 10.0f; //PIXELES ENTRE DIVISION DE AREAS 350px
+														  //-10 por el espacio que comienza a generar linea en el panel
+			generaCuadricula(10, dimensionY, espaciadoX, espaciadoY);
 			e.Graphics.DrawLines(pincel, tablero);
 			generaObstaculos(e);
 
@@ -62,38 +71,82 @@ namespace appIATablero
 
 			Random random = new Random();
 			int des;
-			SolidBrush paso = new SolidBrush(Color.FromArgb(50, 0, 0, 0));
+			SolidBrush paso = new SolidBrush(Color.FromArgb(50, 100, 100, 0));
 			SolidBrush obstaculo = new SolidBrush(Color.FromArgb(150, 0, 0, 0));
+
+			string valoresOrdenados = "";
+			int r = 0, c = 0;
+			bool camino = false;
+
+			string fileName = "meta.json";
+			string jsonString = JsonSerializer.Serialize(weatherForecast);
+			File.WriteAllText(fileName, jsonString);
+
+			/*
+			var meta = new metadatosCuadricula
+			{
+				Date = DateTime.Parse("2019-08-01"),
+				TemperatureCelsius = 25,
+				Summary = "Hot"
+			};
+			*/
 
 			for (int i = 0; i < coordenadas.Count; i++)
 			{
 				des = random.Next(0, 10) + 1;
 				if (des > 3) // MAS ALTO = MAS OBSTACULOS
 				{
+					pasosAbiertos.Add(coordenadas.ElementAt(i));
 					e.Graphics.FillRectangle(paso, coordenadas.ElementAt(i));
 				}
 				else
 				{
 					e.Graphics.FillRectangle(obstaculo, coordenadas.ElementAt(i));
-					//falta metadatos para obstaculos (iran para python)
 				}
 			}
 
+			generaPuntos(e);
+
+		}
+
+
+		// GENERA PUNTOS SE ENCARGA DE GENERAR LOS PUNTOS DE ACTOR Y OBJETIVO 
+		// MEDIANTE EL LIST DE PASOS ABIERTOS QUE ES EL QUE TIENE COORDENADAS DE PASO
+		private void generaPuntos(PaintEventArgs e)
+		{
+			Random random = new Random();
+
+			int pos1 = random.Next(0, pasosAbiertos.Count / 2);
+			int pos2 = random.Next(pasosAbiertos.Count / 2, pasosAbiertos.Count);
+
+			SolidBrush actor = new SolidBrush(Color.FromArgb(150, 200, 100, 150));
+			SolidBrush objetivo = new SolidBrush(Color.FromArgb(150, 20, 20, 100));
+
+			e.Graphics.FillEllipse(objetivo, 
+				new RectangleF(new PointF(pasosAbiertos.ElementAt(pos1).X+30, pasosAbiertos.ElementAt(pos1).Y+5),
+				new SizeF(pasosAbiertos.ElementAt(pos1).Width-30, pasosAbiertos.ElementAt(pos1).Height-10)));
+
+			e.Graphics.FillEllipse(actor,
+				new RectangleF(new PointF(pasosAbiertos.ElementAt(pos2).X + 30, pasosAbiertos.ElementAt(pos2).Y + 5),
+				new SizeF(pasosAbiertos.ElementAt(pos2).Width-30, pasosAbiertos.ElementAt(pos2).Height-10)));
+
+
+			pasosAbiertos.Clear();
 		}
 
 		//GENERA CUADRICULA SE ENCARGA DE RECOPILAR POSICIONES DEL DIBUJO DIVIDIENDO EL TAMAÑO DE PIXELES
 		//A PARTES PARA DIBUJAR
-		private void generaCuadricula(float valIni, float valFin, float valEspa)
+		private void generaCuadricula(float valIni, float valFin, float valEspa, float valEspa2)
 		{
 			float valPointx = valIni;
 			float valPointy = valIni;
 
-			float valSizeH = valEspa; // HEIGHT
+			float valSizeH = valEspa2; // HEIGHT
 			float valSizeW = valEspa; // WIDTH
 
-			for (int i = 0; i < 8; i++) 
+			for (int i = 0; i < Cuadricula; i++)
 			{
-				for (int j = 0; j < 8; j++)
+				for (int j = 0; j < Cuadricula; j++)
 				{
 					coordenadas.Add(new RectangleF(new PointF(valPointx, valPointy), new SizeF(valSizeW, valSizeH)));
 					valPointx += valSizeW;
@@ -106,13 +159,27 @@ namespace appIATablero
 
 		private void button1_Click(object sender, EventArgs e)
 		{
+
 			coordenadas.Clear();
-			this.Refresh();  
+			this.Refresh();
 		}
 
 		private void button2_Click(object sender, EventArgs e)
 		{
+			//
+		}
+
+		private void Form1_Load(object sender, EventArgs e)
+		{
 
 		}
 	}
+
+	public class metadatosCuadricula
+	{
+		public int posRenglon  { get; set; }
+		public int posColumna { get; set; }
+		public bool camino { get; set; }
+	}
+
 }
