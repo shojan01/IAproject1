@@ -1,13 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace appIATablero
 {
@@ -19,6 +21,7 @@ namespace appIATablero
 															   //DE CUBOS GENERADOS
 
 		List<RectangleF> pasosAbiertos = new List<RectangleF>();
+		List<metadatosCuadricula> posicionesCuad = new List<metadatosCuadricula>();
 
 		private const int dimensionX = 545;
 		private const int dimensionY = 350;
@@ -74,36 +77,54 @@ namespace appIATablero
 			SolidBrush paso = new SolidBrush(Color.FromArgb(50, 100, 100, 0));
 			SolidBrush obstaculo = new SolidBrush(Color.FromArgb(150, 0, 0, 0));
 
-			string valoresOrdenados = "";
-			int r = 0, c = 0;
-			bool camino = false;
+			int ren = 0;
+			int col = 0;
+			bool caminodata = false;
 
-			string fileName = "meta.json";
-			string jsonString = JsonSerializer.Serialize(weatherForecast);
-			File.WriteAllText(fileName, jsonString);
-
-			/*
-			var meta = new metadatosCuadricula
-			{
-				Date = DateTime.Parse("2019-08-01"),
-				TemperatureCelsius = 25,
-				Summary = "Hot"
-			};
-			*/
 
 			for (int i = 0; i < coordenadas.Count; i++)
 			{
 				des = random.Next(0, 10) + 1;
 				if (des > 3) // MAS ALTO = MAS OBSTACULOS
 				{
+					caminodata = true;
 					pasosAbiertos.Add(coordenadas.ElementAt(i));
 					e.Graphics.FillRectangle(paso, coordenadas.ElementAt(i));
 				}
 				else
 				{
+					caminodata = false;
 					e.Graphics.FillRectangle(obstaculo, coordenadas.ElementAt(i));
 				}
+
+
+		//------------ GENERACION DE CUADRICULA SIMPLE A PYTHON ----------------
+
+				if (col < 10)
+				{
+					posicionesCuad.Add(new metadatosCuadricula
+					{
+						posRenglon = ren,
+						posColumna = col,
+						camino = caminodata
+					}) ;
+
+				}
+				else
+				{
+					col = -1;
+					ren++;
+				}
+
+				col++;
 			}
+
+			/*
+			string fileName = "meta.json";
+			FileStream createStream = File.Create(fileName);
+			string jsonString = JsonSerializer.(createStream, posicionesCuad);
+			File.WriteAllText(fileName, jsonString);
+			*/
 
 			generaPuntos(e);
 
@@ -159,7 +180,6 @@ namespace appIATablero
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-
 			coordenadas.Clear();
 			this.Refresh();
 		}
