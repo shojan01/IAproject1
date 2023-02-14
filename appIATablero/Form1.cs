@@ -16,12 +16,25 @@ namespace appIATablero
 	public partial class Form1 : Form
 	{
 
+		/*--------------- DETALLES TECNICOS ----------------*/
+		/*
+		 *dataArray.json provee las posiciones generadas en forma
+		  de tabla y si es camino o un obstaculo (para python).
+
+		 *dataPerson.json provee las posiciones de actor y objetivo (para python).
+		 
+		 *dataHeuristic.json provee los intentos y asi va guardando las mejores decisiones, 
+		  este lo genera python y lo interpreta c#.
+		*/
+
 		// VARIABLES GLOBALES
 		List<RectangleF> coordenadas = new List<RectangleF>(); //GUARDARA INFORMACION DE LAS POSICIONES 
-															   //DE CUBOS GENERADOS
+															   //DE CUBOS GENERADOS.
 
-		List<RectangleF> pasosAbiertos = new List<RectangleF>();
-		List<metadatosCuadricula> posicionesCuad = new List<metadatosCuadricula>();
+		List<RectangleF> pasosAbiertos = new List<RectangleF>(); //GUARDA POSICIONES DE PASOS ABIERTOS PARA
+																 //GENERAR LOS PUNTOS.
+
+		List<metadatosCuadricula> posicionesCuad = new List<metadatosCuadricula>(); //GUARDA LOS DATOS PARA JSON.
 
 		private const int dimensionX = 545;
 		private const int dimensionY = 350;
@@ -108,31 +121,26 @@ namespace appIATablero
 						posColumna = col,
 						camino = caminodata
 					}) ;
-
 				}
 				else
 				{
 					col = -1;
 					ren++;
 				}
-
 				col++;
 			}
 
-			/*
-			string fileName = "meta.json";
-			FileStream createStream = File.Create(fileName);
-			string jsonString = JsonSerializer.(createStream, posicionesCuad);
-			File.WriteAllText(fileName, jsonString);
-			*/
+			string fileName = Path.GetDirectoryName(Application.StartupPath) + "/dataArray.json";
+			var jsonData = JsonConvert.SerializeObject(posicionesCuad);
+			File.WriteAllText(fileName, jsonData); // ESCRITURA dataArray
 
 			generaPuntos(e);
 
 		}
 
 
-		// GENERA PUNTOS SE ENCARGA DE GENERAR LOS PUNTOS DE ACTOR Y OBJETIVO 
-		// MEDIANTE EL LIST DE PASOS ABIERTOS QUE ES EL QUE TIENE COORDENADAS DE PASO
+		// generaPuntos SE ENCARGA DE GENERAR LOS PUNTOS DE ACTOR Y OBJETIVO 
+		// MEDIANTE EL LIST DE "PASOS ABIERTOS" QUE ES EL QUE TIENE COORDENADAS DE PASO
 		private void generaPuntos(PaintEventArgs e)
 		{
 			Random random = new Random();
@@ -151,6 +159,15 @@ namespace appIATablero
 				new RectangleF(new PointF(pasosAbiertos.ElementAt(pos2).X + 30, pasosAbiertos.ElementAt(pos2).Y + 5),
 				new SizeF(pasosAbiertos.ElementAt(pos2).Width-30, pasosAbiertos.ElementAt(pos2).Height-10)));
 
+			for(int i = 0; i < pasosAbiertos.Count; i++)
+			{
+
+			}
+			
+
+			string fileName = Path.GetDirectoryName(Application.StartupPath) + "/dataPerson.json";
+			var jsonData = JsonConvert.SerializeObject(posicionesCuad);
+			File.WriteAllText(fileName, jsonData); // ESCRITURA dataPerson
 
 			pasosAbiertos.Clear();
 		}

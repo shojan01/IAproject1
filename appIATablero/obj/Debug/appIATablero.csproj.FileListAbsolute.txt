@@ -8,3 +8,6 @@ C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.csp
 C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.csproj.CoreCompileInputs.cache
 C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.exe
 C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.pdb
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\bin\Debug\Newtonsoft.Json.dll
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\bin\Debug\Newtonsoft.Json.xml
+C:\Users\mjoha\source\repos\appIATablero\appIATablero\obj\Debug\appIATablero.csproj.CopyComplete
