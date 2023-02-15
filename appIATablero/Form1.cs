@@ -94,7 +94,6 @@ namespace appIATablero
 			int col = 0;
 			bool caminodata = false;
 
-
 			for (int i = 0; i < coordenadas.Count; i++)
 			{
 				des = random.Next(0, 10) + 1;
@@ -110,7 +109,6 @@ namespace appIATablero
 					e.Graphics.FillRectangle(obstaculo, coordenadas.ElementAt(i));
 				}
 
-
 		//------------ GENERACION DE CUADRICULA SIMPLE A PYTHON ----------------
 
 				if (col < 10)
@@ -124,8 +122,15 @@ namespace appIATablero
 				}
 				else
 				{
-					col = -1;
+					col = 0;
 					ren++;
+
+					posicionesCuad.Add(new metadatosCuadricula
+					{
+						posRenglon = ren,
+						posColumna = col,
+						camino = caminodata
+					});
 				}
 				col++;
 			}
@@ -159,17 +164,44 @@ namespace appIATablero
 				new RectangleF(new PointF(pasosAbiertos.ElementAt(pos2).X + 30, pasosAbiertos.ElementAt(pos2).Y + 5),
 				new SizeF(pasosAbiertos.ElementAt(pos2).Width-30, pasosAbiertos.ElementAt(pos2).Height-10)));
 
-			for(int i = 0; i < pasosAbiertos.Count; i++)
-			{
 
-			}
-			
+			// posicion 0 = objetivo / posicion 1 = actor
+
+			List<metadatosCuadricula> posiciones = new List<metadatosCuadricula>();
+
+			posiciones.Add(encuentraPos(pos1));
+			posiciones.Add(encuentraPos(pos2));
 
 			string fileName = Path.GetDirectoryName(Application.StartupPath) + "/dataPerson.json";
-			var jsonData = JsonConvert.SerializeObject(posicionesCuad);
+			var jsonData = JsonConvert.SerializeObject(posiciones);
 			File.WriteAllText(fileName, jsonData); // ESCRITURA dataPerson
 
-			pasosAbiertos.Clear();
+
+
+		}
+
+		private metadatosCuadricula encuentraPos(int valEval)
+		{
+			int posicionEnPlano = 0;
+
+			for (int i = 0; i < coordenadas.Count; i++)
+			{
+				if (coordenadas.ElementAt(i).X == pasosAbiertos.ElementAt(valEval).X &&
+				   coordenadas.ElementAt(i).Y == pasosAbiertos.ElementAt(valEval).Y &&
+				   coordenadas.ElementAt(i).Width == pasosAbiertos.ElementAt(valEval).Width &&
+				   coordenadas.ElementAt(i).Height == pasosAbiertos.ElementAt(valEval).Height)
+				{
+					posicionEnPlano = i;
+				}
+			}
+
+			return new metadatosCuadricula
+			{
+				posRenglon = posicionesCuad.ElementAt(posicionEnPlano).posRenglon,
+				posColumna = posicionesCuad.ElementAt(posicionEnPlano).posColumna,
+				camino = posicionesCuad.ElementAt(posicionEnPlano).camino
+			};
+
 		}
 
 		//GENERA CUADRICULA SE ENCARGA DE RECOPILAR POSICIONES DEL DIBUJO DIVIDIENDO EL TAMAÑO DE PIXELES
@@ -197,6 +229,8 @@ namespace appIATablero
 
 		private void button1_Click(object sender, EventArgs e)
 		{
+			pasosAbiertos.Clear();
+			posicionesCuad.Clear();
 			coordenadas.Clear();
 			this.Refresh();
 		}
