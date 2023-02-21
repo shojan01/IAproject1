@@ -96,8 +96,8 @@ namespace appIATablero
 
 			for (int i = 0; i < coordenadas.Count; i++)
 			{
-				des = random.Next(0, 10) + 1;
-				if (des > 3) // MAS ALTO = MAS OBSTACULOS
+				des = random.Next(0, 10);
+				if (des > 1) // MAS ALTO = MAS OBSTACULOS
 				{
 					caminodata = true;
 					pasosAbiertos.Add(coordenadas.ElementAt(i));
@@ -240,7 +240,7 @@ namespace appIATablero
 			//
 		}
 
-		private void Form1_Load(object sender, EventArgs e)
+		private void button3_Click(object sender, EventArgs e)
 		{
 
 		}
