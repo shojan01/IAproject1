@@ -1,15 +1,59 @@
 import json
-import os
+import cmath
 
-directory = os.path.dirname(__file__)
+#region CLASE NODO
+#       CLASE PARA LOS NODOS
 
-pos = str(directory)
+class Nodo:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+# ------------------------------
+#endregion
+
+#region CLASE HEURISTIC
+class heuristic:
+    actual = []
+    puntaje = 0
+    mejorPos = 0
+    posicion = 0
+
+    def __init__(self, actual, puntaje):
+        self.actual = actual
+        self.puntaje = puntaje
+
+        if len(actual) > 0:
+            self.mejorPos = puntaje + actual[0]
+
+            for valor in actual:
+                if(self.actual[self.posicion] + puntaje < self.mejorPos):
+                    self.mejorPos = valor
+                self.posicion = self.posicion + 1
+
+        
+    def analisis(self):
+        return self.mejorPos
+    
+    def getPosicionNodoOptimo(self):
+        return self.posicion
+
+    def borraMemoria(self):
+        self.actual = []
+        self.puntaje = 0
+        self.mejorPos = 0
+        self.posicion = 0
 
 
-# FALTA HACER DINAMICAS LAS DIRECCIONES
+
+    
+#endregion
+                
+#region DIRECCIONES Y CARGA DE FICHEROS DE C#
+#                           DIRECCIONES Y CARGA DE FICHEROS DE C#
+
 data = open('C://Users/mjoha/source/repos/appIATablero/appIATablero/bin/dataArray.json')
 person = open('C://Users/mjoha/source/repos/appIATablero/appIATablero/bin/dataPerson.json')
-
 lista1 = json.load(data)
 lista2 = json.load(person)
 
@@ -17,11 +61,11 @@ AuxX = []
 AuxY = []
 camino = []
 
-# posicion 0 = objetivo / posicion 1 = actor
+# posicion 0 = objetivo / posicion 1 = inteligencia
 AuxXp = []
 AuxYp = []
 
-# LECTURA DE DATOS
+# LECTURA DE DATOS TRAIDOS DE C#
 for i in lista1:
     x1 = str(i).split(':')
     y1 = x1[1].split(',')
@@ -42,28 +86,65 @@ for i in lista2:
     z2 = y2[0]
     AuxYp.append(z2)
 
-#-------- ANALISIS PRUEBA ---------
+inicio = Nodo(int(AuxXp[1]),int(AuxYp[1]))
+objetivo = Nodo(int(AuxXp[0]),int(AuxYp[0]))
 
-#POSICION INICIAL DEL ACTOR
-posTempx=AuxXp[1]
-posTempy=AuxYp[1]
+# ----------------------------------------------------------------------------------------
+#endregion
 
-#LISTA DE MOVIMIENTOS VALIDOS EN POSICION
-movValidx = [1,1,1,0,-1,-1,-1,0]
-movValidy = [1,0,-1,-1,-1,0,1,1]
-intento = 0
+#region SALIDA DE PRUEBA
+print('--------- ANALISIS DE PUNTOS -----------')
+print('NODO INICIAL: ',inicio.x,' ',inicio.y)
+print('NODO OBJETIVO: ',objetivo.x,' ',objetivo.y,end='\n\n')
+#endregion
 
-#ALGORITMO
-while (posTempx != AuxXp[0] & posTempy != AuxYp[0]):
+#region ALGORITMO A*
+# PROCESO DE BUSQUEDA ALGORITMO A*
 
-    ## FALTA VALIDACION
-    posTempx = posTempx + movValidx[intento]
-    posTempy = posTempy + movValidy[intento]
+#LISTA DE MOVIMIENTOS VALIDOS EN POSICION para calificar
+movValidx = [1,0,-1,0] 
+movValidy = [0,-1,0,1]
 
-    #POSICIONES 
+nodoActual = inicio
+puntaje = []
+nodosResult = []
+camino = []
 
+g = 0;
+encontrado = False
 
+while encontrado == False:
 
+    #POSICIONES
+    if(nodoActual == objetivo):
+        encontrado = True
+        print('Lo encontre')
 
+    g = g + 1
+    for intento in [0,1,2,3]:
+        puntajeInit = cmath.sqrt(pow((nodoActual.x+movValidx[intento])-objetivo.x,2)+pow((nodoActual.y+movValidy[intento])-objetivo.y,2))
+        nodosResult.append(puntajeInit.real)
+        print(puntajeInit.real)
 
-print("ANALISIS COMPLETADO")
+    nuevoNodo = heuristic(nodosResult, g)
+    for nodo in nodosResult:
+        if nuevoNodo.analisis() == nodo:
+            print('SE ELIGIO',nuevoNodo.analisis())
+            nodoActual.x = nodoActual.x+movValidx[nuevoNodo.getPosicionNodoOptimo()-1]
+            nodoActual.y = nodoActual.y+movValidy[nuevoNodo.getPosicionNodoOptimo()-1]
+            print('SE ELIGIO',nodoActual.x,' ',nodoActual.y)
+            camino.append(nodoActual)
+            #nuevoNodo.borraMemoria()
+            nodosResult.clear()
+
+    if(g == 10):
+        encontrado = True
+    print('----------------')
+
+        
+     
+
+#endregion
+ 
+
+    
