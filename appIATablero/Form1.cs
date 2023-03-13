@@ -23,8 +23,8 @@ namespace appIATablero
 		List<metadatosCuadricula> posicionesCuad = new List<metadatosCuadricula>(); //GUARDA LOS DATOS PARA HEURISTIC
 
 		List<metadatosCuadricula> posiciones = new List<metadatosCuadricula>(); //GUARDA POSICIONES DE OBJETIVO Y ACTOR
-		List<int> puntajes = new List<int>();
-		List<Nodo> path;
+
+		List<Nodo> path; //GUARDA EL CAMINO TRAZADO DE LA HEURISTICA
 
 		private const int dimensionX = 545;
 		private const int dimensionY = 350;
@@ -70,17 +70,16 @@ namespace appIATablero
 			generaObstaculos(e);
 		}
 
+		// generaObstaculos se encarga de dibujar en la cuadricula los caminos y obstaculos en base un
+		// numero aleatorio, dando asi cada generacion de area, un espacio diferente.
 		private void generaObstaculos(PaintEventArgs e)
 		{
 
 			Random random = new Random();
 			int des;
-			SolidBrush paso = new SolidBrush(Color.FromArgb(50, 100, 100, 0));
-			SolidBrush obstaculo = new SolidBrush(Color.FromArgb(150, 0, 0, 0));
 
 			String pasto = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/pasto.png";
 			Bitmap bitPasto = new Bitmap(pasto);
-
 			String arbusto = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/arbusto.png";
 			Bitmap bitArbusto = new Bitmap(arbusto);
 
@@ -93,6 +92,7 @@ namespace appIATablero
 				des = random.Next(0, 10);
 				if (des > 1) // MAS ALTO = MAS OBSTACULOS
 				{
+					//Si es mayor a 1 dibujalo como camino
 					caminodata = true;
 					pasosAbiertos.Add(coordenadas.ElementAt(i));
 					e.Graphics.DrawImage(bitPasto,
@@ -100,12 +100,14 @@ namespace appIATablero
 				}
 				else
 				{
+					//Si es menor, hazlo obstaculo
 					caminodata = false;
 					e.Graphics.DrawImage(bitArbusto,
 						new PointF(coordenadas.ElementAt(i).X, coordenadas.ElementAt(i).Y));
 				}
 
 		//------------ GENERACION DE CUADRICULA SIMPLE ----------------
+		// X se refiere a las columnas, Y a los renglones
 
 				if (x < 10)
 				{
@@ -113,21 +115,22 @@ namespace appIATablero
 					{
 						posX = x,
 						posY = y,
-						camino = caminodata
+						camino = caminodata //camino data indica si en el registro es un camino o un obstaculo
 					}) ;
 				}
 				else
 				{
+					// si X pasa de 10 vuelve a 0 y Y aumenta uno mas para rellenar las columnas del sig renglon 
 					x = 0;
 					y++;
 					posicionesCuad.Add(new metadatosCuadricula
 					{
 						posX = x,
 						posY = y,
-						camino = caminodata
+						camino = caminodata 
 					});
 				}
-				x++;
+				x++; // x va sumandose cada vuelta para meter un nuevo dato de cada columna
 			}
 
 			generaPuntos(e);
@@ -140,12 +143,14 @@ namespace appIATablero
 		{
 			Random random = new Random();
 
+			//Toma un numero al azar de la lista pasosAbiertos, el objetivo va de 0 a media lista
+			// y el actor o agente de media lista al resto, para evitar que puedan generarse en el mismo punto
 			int pos1 = random.Next(0, pasosAbiertos.Count / 2);
 			int pos2 = random.Next(pasosAbiertos.Count / 2, pasosAbiertos.Count);
 
+
 			String raton = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/raton.png";
 			Bitmap bitRaton = new Bitmap(raton);
-
 			String gato = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/gato.png";
 			Bitmap bitGato = new Bitmap(gato);
 
@@ -156,12 +161,15 @@ namespace appIATablero
 						new PointF(pasosAbiertos.ElementAt(pos2).X + 15, pasosAbiertos.ElementAt(pos2).Y + 5));
 
 			// posicion 0 = objetivo / posicion 1 = actor
-
+			// Guardamos las posiciones en un List que solo contiene al objetivo y al agente
 			posiciones.Add(encuentraPos(pos1));
 			posiciones.Add(encuentraPos(pos2));
 
 		}
 
+		// encuentraPos recibe como parametro un valor entero para ubicar en posicionesCuad
+		// si existe en las coordenadas generales, este se rellena en un metadatosCuadricula y se entrega para que sea utilizado,
+		// se utiliza para rellenar datos que requiere la heuristica
 		private metadatosCuadricula encuentraPos(int valEval)
 		{
 			int posicionEnPlano = 0;
@@ -173,10 +181,11 @@ namespace appIATablero
 				   coordenadas.ElementAt(i).Width == pasosAbiertos.ElementAt(valEval).Width &&
 				   coordenadas.ElementAt(i).Height == pasosAbiertos.ElementAt(valEval).Height)
 				{
-					posicionEnPlano = i;
+					posicionEnPlano = i; //SI LO ENCUENTRA, GUARDA LA POSICION PARA UTILIZARLA
 				}
 			}
 
+			// RELLENA DATOS UBICADOS EN posicionesCuad QUE COMPARTEN MISMO NUMERO CON coordenadas
 			return new metadatosCuadricula
 			{
 				posX = posicionesCuad.ElementAt(posicionEnPlano).posX,
@@ -190,19 +199,21 @@ namespace appIATablero
 		//A PARTES PARA DIBUJAR
 		private void generaCuadricula(float valIni, float valFin, float valEspa, float valEspa2)
 		{
-			float valPointx = valIni;
-			float valPointy = valIni;
+			float valPointx = valIni;	// X
+			float valPointy = valIni;	// Y
 
-			float valSizeH = valEspa2; // HEIGHT
-			float valSizeW = valEspa; // WIDTH
+			float valSizeH = valEspa2; // ALTO
+			float valSizeW = valEspa; // ANCHO
 
 			for (int i = 0; i < Cuadricula; i++)
 			{
 				for (int j = 0; j < Cuadricula; j++)
 				{
+					//Aqui se rellenan las coordenadas generales que son enfocadas en el dibujado
 					coordenadas.Add(new RectangleF(new PointF(valPointx, valPointy), new SizeF(valSizeW, valSizeH)));
-					valPointx += valSizeW;
+					valPointx += valSizeW; // numero valor x = ancho de esta misma
 				}
+				//Cuando termina la primer serie de columnas x retorna a valor inicial y Y aumenta a el alto del mismo
 				valPointx = valIni;
 				valPointy += valSizeH;
 			}
@@ -211,6 +222,7 @@ namespace appIATablero
 
 		private void button1_Click(object sender, EventArgs e)
 		{
+			//CADA GENERACION DE AREA REQUIERE UN FLUSH (BORRA DATOS DE VARIABLES GLOBALES Y LIBERA MEMORIA)
 			pasosAbiertos.Clear();
 			posicionesCuad.Clear();
 			coordenadas.Clear();
@@ -226,35 +238,39 @@ namespace appIATablero
 			Pantalla(new PaintEventArgs(this.panel1.CreateGraphics(), new Rectangle(10, 10,545, 350)));
 		}
 
+		// analisis Se encarga de hacer la llamada principal de la heuristica
 		private void analisis()
 		{
-			
 			Heuristica ia = new Heuristica(10, posicionesCuad,
 				posiciones.ElementAt(1).getX(),
 				posiciones.ElementAt(1).getY(),
 				posiciones.ElementAt(0).getX(),
 				posiciones.ElementAt(0).getY());
 
-			Console.WriteLine(posiciones.ElementAt(1).getX() + ", " + posiciones.ElementAt(1).getY());
 			path = ia.FindPath();
-
 		}
 
+		// obtenPuntaje retorna un valor de DatosDistancia, realiza un calculo de distancia del nodo actual al nodo objetivo
+		// requiere un indice para saber que valor retornar de la lista de vecinos de las cuales calculo esa distancia
 		private DatosDistancia obtenPuntaje(Nodo actual, int index)
 		{
+
 			List<Nodo> vecinos;
 
+			//SE INVOCA UNA HEURISTICA CON LOS MISMOS VALORES
 			Heuristica ia = new Heuristica(10, posicionesCuad,
 				posiciones.ElementAt(1).getX(),
 				posiciones.ElementAt(1).getY(),
 				posiciones.ElementAt(0).getX(),
 				posiciones.ElementAt(0).getY());
 
+			//TOMAMOS LA LISTA DE VECINOS QUE SE GENERO
 			vecinos = ia.GetNeighbours(actual);
 			List<DatosDistancia> dist = new List<DatosDistancia>();
 
 			foreach (Nodo nodo in vecinos)
 			{
+				//EN CICLO VAMOS AGREGANDO DatosDistancia LLEGADOS DE LOS NODOS VECINOS LOS CUALES SE ENRIQUECEN CON INFORMACION DE POSICION, DISTANCIA Y ESTADO
 				dist.Add(new DatosDistancia
 				{
 					x = nodo.x,
@@ -265,6 +281,7 @@ namespace appIATablero
 
 			}
 
+			//CON BASE AL INDICE REGRESAMOS EL ELEMENTO DESEADO, SI ES MAS ALTO A LA LISTA DE VECINOS, RETORNA NULL
 			if (index < dist.Count)
 				return dist.ElementAt(index);
 			else
@@ -272,6 +289,8 @@ namespace appIATablero
 
 		}
 
+		// CuadriculaAPuntos se encarga de convertir la cuadricula simple a pixeles para dibujar en pantalla
+		// o simplemente retornar de nuevo los valores vecinos (convertidos o no)
 		private List<Nodo> CuadriculaAPuntos(Nodo actual, bool convertido)
 		{
 			List<Nodo> conversion = new List<Nodo>(); //TRUE = Nodo Actual
@@ -286,8 +305,9 @@ namespace appIATablero
 				posiciones.ElementAt(0).getX(),
 				posiciones.ElementAt(0).getY());
 
-			vecinos = ia.GetNeighbours(actual);
+			vecinos = ia.GetNeighbours(actual); // INICIA UNA HEURISTICA Y OBTEN VECINOS DEL NODO ACTUAL
 
+			//si esta convertiido, rellena los nodos con posiciones en pixel
 			if (convertido)
 			{
 				foreach (Nodo nodo in vecinos)
@@ -305,15 +325,18 @@ namespace appIATablero
 			}
 			else
 			{
+				//si no, solo agrega con valor simple
 				vecinos.Add(actual);
 				return vecinos;
 			}
 			
 		}
 
+		// Pantalla se encarga de interpretar todos los datos obtenidos de la heuristica principal, nodos e informacion extra
+		// al Frame principal
 		private void Pantalla(PaintEventArgs e)
 		{
-
+			// CARGA IMAGENES PARA DIBUJAR MOVIMIENTOS
 			String huellitas = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/pisadas.png";
 			Bitmap bitPasos = new Bitmap(huellitas);
 			String explorado = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/pastoexp.png";
@@ -323,22 +346,26 @@ namespace appIATablero
 			String gato = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/gato.png";
 			Bitmap bitGato = new Bitmap(gato);
 
-			int pasos = 0;
-			int ubicacion = 0;
-			int index = 0;
+			int pasos = 0; //VALOR PARA UBICAR VECINOS EN EL PLANO
+			int ubicacion = 0; //VALOR QUE AYUDA A UBICAR VALORES PARA PINTAR AREAS VECINAS
+			int index = 0; //SE UTILIZA DE INDICE PARA obtenPuntaje
 
-			int acumulado = 0;
+			int acumulado = 0; //ACUMULADO GUARDA PUNTAJE 
 
 			if (path != null)
 			{
 				foreach (Nodo nodo in path)
 				{
+					// SE GENERAN DOS LISTAS DE NODOS VECINOS CON MISMOS PARAMETROS, PERO UNA SIMPLE Y UNA A PIXELES
 					List<Nodo> nuevosVecinos = CuadriculaAPuntos(nodo, false);
 					List<Nodo> pos = CuadriculaAPuntos(nodo, true);
 
+					// DIBUJA DATO EXPLORADO = NODO INICIAL
 					e.Graphics.DrawImage(bitExplorado,
 									new PointF((float)pos.ElementAt(pos.Count - 1).x + 6.5f, (float)pos.ElementAt(pos.Count - 1).y + 3.5f));
-				
+					
+					// SE ENCARGA DE INTERPRETAR VECINOS Y MOSTRAR SUS DISTANCIAS, INDICE ES CLAVE PARA DETERMINAR QUE POSICIONES
+					// SE MUESTRAN
 					foreach (Nodo vecino in nuevosVecinos)
 					{
 						var nodos = obtenPuntaje(nodo,index);
@@ -353,13 +380,9 @@ namespace appIATablero
 
 						if (nodos != null)
 						{
-							Console.WriteLine("x: "+nodos.x + " "+ nodos.y + " " + nodos.distancia + " " + nodos.estado);
 							this.richTextBox1.AppendText("x: " + nodos.x + ", y: " + nodos.y + "/	 h:" + nodos.distancia + "\n");
 							this.richTextBox1.Focus();
 							acumulado += nodos.distancia;
-							Console.WriteLine("ESTOY EN: " + nodo.x + " " + nodo.y);
-							
-
 							index++;
 						}
 						if(nodos == null)
@@ -367,7 +390,7 @@ namespace appIATablero
 							index = 0;
 						}
 
-
+						//ESTE CICLO SE ENCARGA DE PINTAR BUSQUEDA MIENTRAS EL AREA A PINTAR NO SEA UN OBSTACULO QUE NO SE PUEDA VISITAR
 						while (pasos < posicionesCuad.Count)
 						{
 							if (vecino.x == posicionesCuad.ElementAt(pasos).getX() &&
@@ -381,13 +404,13 @@ namespace appIATablero
 									if (marca.x != vecino.x && marca.y != vecino.y)
 										e.Graphics.DrawImage(bitExplorado,
 											new PointF((float)pos.ElementAt(ubicacion).x + 6.5f, (float)pos.ElementAt(ubicacion).y + 3.5f));
-									Thread.Sleep(50);
+									Thread.Sleep(100);
 									
 								}
 
 								e.Graphics.DrawImage(bitPasos,
 									new PointF((float)pos.ElementAt(pos.Count - 1).x + 6.5f, (float)pos.ElementAt(pos.Count - 1).y + 3.5f));
-								Thread.Sleep(50);
+								Thread.Sleep(100);
 
 							}
 							pasos++;
@@ -396,13 +419,13 @@ namespace appIATablero
 						pasos = 0;
 					}
 					ubicacion = 0;
-					Thread.Sleep(50);
+					Thread.Sleep(100);
 				}
 
 				List<Nodo> dibujofinal = CuadriculaAPuntos(path.ElementAt(path.Count - 1), true);
-
 				this.button2.Enabled = false;
 
+				//HACE UN RESUMEN DE PASOS
 				foreach (Nodo nodo in path)
 				{
 					List<Nodo> pos = CuadriculaAPuntos(nodo, true);
@@ -411,35 +434,20 @@ namespace appIATablero
 									new PointF((float)pos.ElementAt(pos.Count - 1).x + 6.5f, (float)pos.ElementAt(pos.Count - 1).y + 3.5f));
 				}
 
+
+				//UNA VEZ TERMINADO EL CICLO, ESTE PINTA AL FINAL AL AGENTE ATRAPANDO AL OBJETIVO ;)
 				e.Graphics.DrawImage(bitExplorado,
 					new PointF((float)dibujofinal.ElementAt(dibujofinal.Count - 1).x + 6.5f, (float)dibujofinal.ElementAt(dibujofinal.Count - 1).y + 3.5f));
 				e.Graphics.DrawImage(bitAtrapado,
 					new PointF((float)dibujofinal.ElementAt(dibujofinal.Count - 1).x + 6.5f, (float)dibujofinal.ElementAt(dibujofinal.Count - 1).y + 3.5f));
 
 				
+				//INDICA QUE LA BUSQUEDA TERMINO
 				this.richTextBox1.AppendText("\nCOMPLETADO\n");
 			}
 		}
 
-		private void label1_Click(object sender, EventArgs e)
-		{
 
-		}
-
-		private void richTextBox1_TextChanged(object sender, EventArgs e)
-		{
-
-		}
-
-		private void label2_Click(object sender, EventArgs e)
-		{
-
-		}
-
-		private void label3_Click(object sender, EventArgs e)
-		{
-
-		}
 	}
 
 

@@ -31,10 +31,10 @@ namespace appIATablero
 		{
 			this.button1 = new System.Windows.Forms.Button();
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.label2 = new System.Windows.Forms.Label();
 			this.button2 = new System.Windows.Forms.Button();
 			this.richTextBox1 = new System.Windows.Forms.RichTextBox();
 			this.label1 = new System.Windows.Forms.Label();
-			this.label2 = new System.Windows.Forms.Label();
 			this.panel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -59,6 +59,17 @@ namespace appIATablero
 			this.panel1.TabIndex = 2;
 			this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
 			// 
+			// label2
+			// 
+			this.label2.Location = new System.Drawing.Point(1, -7);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(553, 23);
+			this.label2.TabIndex = 7;
+			this.label2.Text = "0                1                  2                  3                  4      " +
+    "             5                  6                7               8              " +
+    "   9";
+			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
 			// button2
 			// 
 			this.button2.Location = new System.Drawing.Point(122, 387);
@@ -80,7 +91,6 @@ namespace appIATablero
 			this.richTextBox1.Size = new System.Drawing.Size(189, 381);
 			this.richTextBox1.TabIndex = 4;
 			this.richTextBox1.Text = "";
-			this.richTextBox1.TextChanged += new System.EventHandler(this.richTextBox1_TextChanged);
 			// 
 			// label1
 			// 
@@ -90,19 +100,6 @@ namespace appIATablero
 			this.label1.TabIndex = 5;
 			this.label1.Text = "MOVIMIENTOS";
 			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			this.label1.Click += new System.EventHandler(this.label1_Click);
-			// 
-			// label2
-			// 
-			this.label2.Location = new System.Drawing.Point(1, -7);
-			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(553, 23);
-			this.label2.TabIndex = 7;
-			this.label2.Text = "0                1                  2                  3                  4      " +
-    "             5                  6                7               8              " +
-    "   9";
-			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			this.label2.Click += new System.EventHandler(this.label2_Click);
 			// 
 			// Form1
 			// 
