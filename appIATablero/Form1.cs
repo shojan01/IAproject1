@@ -1,45 +1,34 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 
 namespace appIATablero
 {
 	public partial class Form1 : Form
 	{
 
-		/*--------------- DETALLES TECNICOS ----------------*/
-		/*
-		 *dataArray.json provee las posiciones generadas en forma
-		  de tabla y si es camino o un obstaculo (para python).
-
-		 *dataPerson.json provee las posiciones de actor y objetivo (para python).
-		 
-		 *dataHeuristic.json provee los intentos y asi va guardando las mejores decisiones, 
-		  este lo genera python y lo interpreta c#.
-		*/
-
 		// VARIABLES GLOBALES
 		List<RectangleF> coordenadas = new List<RectangleF>(); //GUARDARA INFORMACION DE LAS POSICIONES 
-															   //DE CUBOS GENERADOS.
-
+															   //DE CUBOS GENERADOS
 		List<RectangleF> pasosAbiertos = new List<RectangleF>(); //GUARDA POSICIONES DE PASOS ABIERTOS PARA
 																 //GENERAR LOS PUNTOS.
 
-		List<metadatosCuadricula> posicionesCuad = new List<metadatosCuadricula>(); //GUARDA LOS DATOS PARA JSON.
+		List<metadatosCuadricula> posicionesCuad = new List<metadatosCuadricula>(); //GUARDA LOS DATOS PARA HEURISTIC
+
+		List<metadatosCuadricula> posiciones = new List<metadatosCuadricula>(); //GUARDA POSICIONES DE OBJETIVO Y ACTOR
+		List<int> puntajes = new List<int>();
+		List<Nodo> path;
 
 		private const int dimensionX = 545;
 		private const int dimensionY = 350;
 		private const int Cuadricula = 10;
-
 
 		public Form1()
 		{
@@ -79,7 +68,6 @@ namespace appIATablero
 			generaCuadricula(10, dimensionY, espaciadoX, espaciadoY);
 			e.Graphics.DrawLines(pincel, tablero);
 			generaObstaculos(e);
-
 		}
 
 		private void generaObstaculos(PaintEventArgs e)
@@ -90,8 +78,14 @@ namespace appIATablero
 			SolidBrush paso = new SolidBrush(Color.FromArgb(50, 100, 100, 0));
 			SolidBrush obstaculo = new SolidBrush(Color.FromArgb(150, 0, 0, 0));
 
-			int ren = 0;
-			int col = 0;
+			String pasto = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/pasto.png";
+			Bitmap bitPasto = new Bitmap(pasto);
+
+			String arbusto = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/arbusto.png";
+			Bitmap bitArbusto = new Bitmap(arbusto);
+
+			int x = 0;
+			int y = 0;
 			bool caminodata = false;
 
 			for (int i = 0; i < coordenadas.Count; i++)
@@ -101,46 +95,42 @@ namespace appIATablero
 				{
 					caminodata = true;
 					pasosAbiertos.Add(coordenadas.ElementAt(i));
-					e.Graphics.FillRectangle(paso, coordenadas.ElementAt(i));
+					e.Graphics.DrawImage(bitPasto,
+						new PointF(coordenadas.ElementAt(i).X, coordenadas.ElementAt(i).Y));
 				}
 				else
 				{
 					caminodata = false;
-					e.Graphics.FillRectangle(obstaculo, coordenadas.ElementAt(i));
+					e.Graphics.DrawImage(bitArbusto,
+						new PointF(coordenadas.ElementAt(i).X, coordenadas.ElementAt(i).Y));
 				}
 
-		//------------ GENERACION DE CUADRICULA SIMPLE A PYTHON ----------------
+		//------------ GENERACION DE CUADRICULA SIMPLE ----------------
 
-				if (col < 10)
+				if (x < 10)
 				{
 					posicionesCuad.Add(new metadatosCuadricula
 					{
-						posRenglon = ren,
-						posColumna = col,
+						posX = x,
+						posY = y,
 						camino = caminodata
 					}) ;
 				}
 				else
 				{
-					col = 0;
-					ren++;
-
+					x = 0;
+					y++;
 					posicionesCuad.Add(new metadatosCuadricula
 					{
-						posRenglon = ren,
-						posColumna = col,
+						posX = x,
+						posY = y,
 						camino = caminodata
 					});
 				}
-				col++;
+				x++;
 			}
 
-			string fileName = Path.GetDirectoryName(Application.StartupPath) + "/dataArray.json";
-			var jsonData = JsonConvert.SerializeObject(posicionesCuad);
-			File.WriteAllText(fileName, jsonData); // ESCRITURA dataArray
-
 			generaPuntos(e);
-
 		}
 
 
@@ -153,30 +143,22 @@ namespace appIATablero
 			int pos1 = random.Next(0, pasosAbiertos.Count / 2);
 			int pos2 = random.Next(pasosAbiertos.Count / 2, pasosAbiertos.Count);
 
-			SolidBrush actor = new SolidBrush(Color.FromArgb(150, 200, 100, 150));
-			SolidBrush objetivo = new SolidBrush(Color.FromArgb(150, 20, 20, 100));
+			String raton = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/raton.png";
+			Bitmap bitRaton = new Bitmap(raton);
 
-			e.Graphics.FillEllipse(objetivo, 
-				new RectangleF(new PointF(pasosAbiertos.ElementAt(pos1).X+30, pasosAbiertos.ElementAt(pos1).Y+5),
-				new SizeF(pasosAbiertos.ElementAt(pos1).Width-30, pasosAbiertos.ElementAt(pos1).Height-10)));
+			String gato = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/gato.png";
+			Bitmap bitGato = new Bitmap(gato);
 
-			e.Graphics.FillEllipse(actor,
-				new RectangleF(new PointF(pasosAbiertos.ElementAt(pos2).X + 30, pasosAbiertos.ElementAt(pos2).Y + 5),
-				new SizeF(pasosAbiertos.ElementAt(pos2).Width-30, pasosAbiertos.ElementAt(pos2).Height-10)));
+			e.Graphics.DrawImage(bitRaton,
+						new PointF(pasosAbiertos.ElementAt(pos1).X + 15, pasosAbiertos.ElementAt(pos1).Y + 5));
 
+			e.Graphics.DrawImage(bitGato,
+						new PointF(pasosAbiertos.ElementAt(pos2).X + 15, pasosAbiertos.ElementAt(pos2).Y + 5));
 
 			// posicion 0 = objetivo / posicion 1 = actor
 
-			List<metadatosCuadricula> posiciones = new List<metadatosCuadricula>();
-
 			posiciones.Add(encuentraPos(pos1));
 			posiciones.Add(encuentraPos(pos2));
-
-			string fileName = Path.GetDirectoryName(Application.StartupPath) + "/dataPerson.json";
-			var jsonData = JsonConvert.SerializeObject(posiciones);
-			File.WriteAllText(fileName, jsonData); // ESCRITURA dataPerson
-
-
 
 		}
 
@@ -197,8 +179,8 @@ namespace appIATablero
 
 			return new metadatosCuadricula
 			{
-				posRenglon = posicionesCuad.ElementAt(posicionEnPlano).posRenglon,
-				posColumna = posicionesCuad.ElementAt(posicionEnPlano).posColumna,
+				posX = posicionesCuad.ElementAt(posicionEnPlano).posX,
+				posY = posicionesCuad.ElementAt(posicionEnPlano).posY,
 				camino = posicionesCuad.ElementAt(posicionEnPlano).camino
 			};
 
@@ -232,25 +214,234 @@ namespace appIATablero
 			pasosAbiertos.Clear();
 			posicionesCuad.Clear();
 			coordenadas.Clear();
+			posiciones.Clear();
 			this.Refresh();
+			this.button2.Enabled = true;
+			this.richTextBox1.Text = "";
 		}
 
 		private void button2_Click(object sender, EventArgs e)
 		{
-			//
+			analisis();
+			Pantalla(new PaintEventArgs(this.panel1.CreateGraphics(), new Rectangle(10, 10,545, 350)));
 		}
 
-		private void button3_Click(object sender, EventArgs e)
+		private void analisis()
+		{
+			
+			Heuristica ia = new Heuristica(10, posicionesCuad,
+				posiciones.ElementAt(1).getX(),
+				posiciones.ElementAt(1).getY(),
+				posiciones.ElementAt(0).getX(),
+				posiciones.ElementAt(0).getY());
+
+			Console.WriteLine(posiciones.ElementAt(1).getX() + ", " + posiciones.ElementAt(1).getY());
+			path = ia.FindPath();
+
+		}
+
+		private DatosDistancia obtenPuntaje(Nodo actual, int index)
+		{
+			List<Nodo> vecinos;
+
+			Heuristica ia = new Heuristica(10, posicionesCuad,
+				posiciones.ElementAt(1).getX(),
+				posiciones.ElementAt(1).getY(),
+				posiciones.ElementAt(0).getX(),
+				posiciones.ElementAt(0).getY());
+
+			vecinos = ia.GetNeighbours(actual);
+			List<DatosDistancia> dist = new List<DatosDistancia>();
+
+			foreach (Nodo nodo in vecinos)
+			{
+				dist.Add(new DatosDistancia
+				{
+					x = nodo.x,
+					y = nodo.y,
+					distancia = ia.GetDistance(nodo, new Nodo(posiciones.ElementAt(1).getX(), posiciones.ElementAt(1).getY(), true)),
+					estado = "buscando"
+				});
+
+			}
+
+			if (index < dist.Count)
+				return dist.ElementAt(index);
+			else
+				return null;
+
+		}
+
+		private List<Nodo> CuadriculaAPuntos(Nodo actual, bool convertido)
+		{
+			List<Nodo> conversion = new List<Nodo>(); //TRUE = Nodo Actual
+			List<Nodo> vecinos;
+			
+			var x = 0;
+			var y = 0;
+
+			Heuristica ia = new Heuristica(10, posicionesCuad,
+				posiciones.ElementAt(1).getX(),
+				posiciones.ElementAt(1).getY(),
+				posiciones.ElementAt(0).getX(),
+				posiciones.ElementAt(0).getY());
+
+			vecinos = ia.GetNeighbours(actual);
+
+			if (convertido)
+			{
+				foreach (Nodo nodo in vecinos)
+				{
+					x = ((dimensionX) / 10) * (nodo.x);
+					y = ((dimensionY) / 10) * (nodo.y);
+					conversion.Add(new Nodo(x, y, true));
+				}
+
+				x = ((dimensionX) / 10) * (actual.x);
+				y = ((dimensionY) / 10) * (actual.y);
+				conversion.Add(new Nodo(x, y, true));
+
+				return conversion;
+			}
+			else
+			{
+				vecinos.Add(actual);
+				return vecinos;
+			}
+			
+		}
+
+		private void Pantalla(PaintEventArgs e)
+		{
+
+			String huellitas = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/pisadas.png";
+			Bitmap bitPasos = new Bitmap(huellitas);
+			String explorado = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/pastoexp.png";
+			Bitmap bitExplorado = new Bitmap(explorado);
+			String atrapado = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/meta.png";
+			Bitmap bitAtrapado = new Bitmap(atrapado);
+			String gato = Path.GetDirectoryName(Application.StartupPath) + "/imagenes/gato.png";
+			Bitmap bitGato = new Bitmap(gato);
+
+			int pasos = 0;
+			int ubicacion = 0;
+			int index = 0;
+
+			int acumulado = 0;
+
+			if (path != null)
+			{
+				foreach (Nodo nodo in path)
+				{
+					List<Nodo> nuevosVecinos = CuadriculaAPuntos(nodo, false);
+					List<Nodo> pos = CuadriculaAPuntos(nodo, true);
+
+					e.Graphics.DrawImage(bitExplorado,
+									new PointF((float)pos.ElementAt(pos.Count - 1).x + 6.5f, (float)pos.ElementAt(pos.Count - 1).y + 3.5f));
+				
+					foreach (Nodo vecino in nuevosVecinos)
+					{
+						var nodos = obtenPuntaje(nodo,index);
+
+						if(index == 0)
+						{
+							this.richTextBox1.AppendText("AHORA: " + nodo.x + ", " + nodo.y + "\n");
+							this.richTextBox1.AppendText("PUNTAJE: " + acumulado + "\n");
+							this.richTextBox1.AppendText("------------------------\n");
+							this.richTextBox1.AppendText("BUSCANDO...\n");
+						}
+
+						if (nodos != null)
+						{
+							Console.WriteLine("x: "+nodos.x + " "+ nodos.y + " " + nodos.distancia + " " + nodos.estado);
+							this.richTextBox1.AppendText("x: " + nodos.x + ", y: " + nodos.y + "/	 h:" + nodos.distancia + "\n");
+							this.richTextBox1.Focus();
+							acumulado += nodos.distancia;
+							Console.WriteLine("ESTOY EN: " + nodo.x + " " + nodo.y);
+							
+
+							index++;
+						}
+						if(nodos == null)
+						{
+							index = 0;
+						}
+
+
+						while (pasos < posicionesCuad.Count)
+						{
+							if (vecino.x == posicionesCuad.ElementAt(pasos).getX() &&
+								vecino.y == posicionesCuad.ElementAt(pasos).getY() &&
+								posicionesCuad.ElementAt(pasos).getCamino() == 0 &&
+								vecino.y != nodo.x && vecino.x != nodo.x)
+							{
+
+								foreach (Nodo marca in path)
+								{
+									if (marca.x != vecino.x && marca.y != vecino.y)
+										e.Graphics.DrawImage(bitExplorado,
+											new PointF((float)pos.ElementAt(ubicacion).x + 6.5f, (float)pos.ElementAt(ubicacion).y + 3.5f));
+									Thread.Sleep(50);
+									
+								}
+
+								e.Graphics.DrawImage(bitPasos,
+									new PointF((float)pos.ElementAt(pos.Count - 1).x + 6.5f, (float)pos.ElementAt(pos.Count - 1).y + 3.5f));
+								Thread.Sleep(50);
+
+							}
+							pasos++;
+						}
+						ubicacion++;
+						pasos = 0;
+					}
+					ubicacion = 0;
+					Thread.Sleep(50);
+				}
+
+				List<Nodo> dibujofinal = CuadriculaAPuntos(path.ElementAt(path.Count - 1), true);
+
+				this.button2.Enabled = false;
+
+				foreach (Nodo nodo in path)
+				{
+					List<Nodo> pos = CuadriculaAPuntos(nodo, true);
+
+					e.Graphics.DrawImage(bitPasos,
+									new PointF((float)pos.ElementAt(pos.Count - 1).x + 6.5f, (float)pos.ElementAt(pos.Count - 1).y + 3.5f));
+				}
+
+				e.Graphics.DrawImage(bitExplorado,
+					new PointF((float)dibujofinal.ElementAt(dibujofinal.Count - 1).x + 6.5f, (float)dibujofinal.ElementAt(dibujofinal.Count - 1).y + 3.5f));
+				e.Graphics.DrawImage(bitAtrapado,
+					new PointF((float)dibujofinal.ElementAt(dibujofinal.Count - 1).x + 6.5f, (float)dibujofinal.ElementAt(dibujofinal.Count - 1).y + 3.5f));
+
+				
+				this.richTextBox1.AppendText("\nCOMPLETADO\n");
+			}
+		}
+
+		private void label1_Click(object sender, EventArgs e)
+		{
+
+		}
+
+		private void richTextBox1_TextChanged(object sender, EventArgs e)
+		{
+
+		}
+
+		private void label2_Click(object sender, EventArgs e)
+		{
+
+		}
+
+		private void label3_Click(object sender, EventArgs e)
 		{
 
 		}
 	}
 
-	public class metadatosCuadricula
-	{
-		public int posRenglon  { get; set; }
-		public int posColumna { get; set; }
-		public bool camino { get; set; }
-	}
+
 
 }
